@@ -1,0 +1,49 @@
+# 🔹 Core LLM + Orchestration
+langchain # core engine for LLM orchestration
+langgraph
+openai
+tiktoken #token handling for OpenAI models
+
+# 🔹 Environment & Config
+python-dotenv
+pydantic
+pydantic-settings
+
+# 🔹 Web Search & HTTP
+requests
+httpx
+
+# 🔹 Financial APIs
+yfinance
+
+# 🔹 RAG (Vector DB)
+chromadb
+sentence-transformers
+
+# 🔹 PDF Processing (RAG ingestion)
+pypdf
+pdfplumber
+
+# 🔹 Database
+sqlalchemy
+sqlite-utils
+
+# 🔹 Cache (optional but recommended)
+redis
+
+# 🔹 Streamlit UI
+streamlit
+
+# 🔹 Data Handling
+pandas
+numpy
+
+# 🔹 Logging & Monitoring
+loguru
+
+# 🔹 Testing
+pytest
+
+# 🔹 Optional (better performance / parsing)
+beautifulsoup4
+lxml

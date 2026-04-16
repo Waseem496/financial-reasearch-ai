@@ -1,0 +1,127 @@
+# 📊 Financial Research Report
+
+## Query: Analyze IT sector in India
+
+## 🧾 Executive Summary
+
+This report provides a comprehensive analysis based on multi-step research, including web data and financial documents.
+
+## 🔍 Detailed Findings
+
+### Step 1: Understand overall market size and growth
+
+**Query Used:** Understand overall market size and growth
+
+**Insights:**
+## Frequently Asked Questions
+
+How much will the business information market be worth by 2034?
+
+The market is projected to record a valuation of USD 303.21 billion by 2034.
+
+What was the value of the global business information market in 2025?
+
+In 2025, the market size stood at USD 164.90 billion.
+
+At what CAGR is the market projected to grow during the forecast period of 2026-2034?
+
+The market is projected to grow at a CAGR of 5.80% during the forecast period.
+
+Which is the leading end-user seg
+
+### Step 2: Identify key companies in the sector
+
+**Query Used:** Identify key companies in the sector impact of AI in this context
+
+**Insights:**
+Collaboration Corner
+AI artificial intelligence
+
+# Impact of AI: 10 Key Industries Experiencing Dynamic Shifts
+
+Artificial Intelligence (AI) has been the most discussed in the technological world since its arrival.
+
+Companies worldwide use AI-based technologies to automate their operations to improve efficiency.
+
+There is a surge in demand for Artificial intelligence technology as it is advantageous to key industries in streamlining their operations.
+
+A statistical report by Grand View Research 
+
+### Step 3: Analyze recent news and developments
+
+**Query Used:** Analyze recent news and developments impact of AI in this context
+
+**Insights:**
+### Hyundai expands into robotics and physical AI systems
+
+AI Business Strategy, AI Market Trends, Cybersecurity AI, Data Engineering & MLOps, Deep Dives, Featured News, Features, Governance, Regulation & Policy, Infrastructure & Hardware, Inside AI, Open-Source & Democratised AI, Opinion, TechEx Events, Trust, Bias & Fairness, World of Work
+
+### IBM: How robust AI governance protects enterprise margins
+
+Artificial Intelligence, Cybersecurity AI, Featured News, Finance AI, TechEx Events
+
+### Exp
+
+### Step 4: Identify major trends and innovations
+
+**Query Used:** Identify major trends and innovations impact of AI in this context
+
+**Insights:**
+A. The current trends in artificial intelligence are:
+
+   Conversational AI
+   Predictive Analytics
+   AI Democratization (Low-code/No-code)
+   Ethical and Explainable AI
+   Multi-Modal AI
+   Digital Twins
+   Generative AI
+   Retrieval-Augmented Generation (RAG)
+   Shadow AI
+   Sentimental AI
+   Quantum AI
+   Agentic AI
+   Physical and Embodied AI
+   Sovereign AI and Geopolitical Dynamics
+
+### Q. What are the major AI developments and announcements from today across the tech industry?
+
+A. The AI
+
+### Step 5: Analyze financial performance of key players
+
+**Query Used:** Analyze financial performance of key players impact of AI in this context
+
+**Insights:**
+AI-driven insights have the potential to benefit financial decision-makers in several ways, such as increased speed, accuracy and reduced human error. Businesses that utilize AI to make financial decisions may increase their profitability by 10% and increase their operational efficiency by 20%, according to McKinsey.
+
+Automation of Routine Tasks [...] Skip to content
+
+ 846-7477
+ Virtual Service Areas
+
+Main Menu
+
+ Technology
+
+# The Impact of Artificial Intelligence on Financial Analysis
+
+ Picture
+
+### Step 6: Study government regulations and policies
+
+**Query Used:** Study government regulations and policies impact of AI in this context
+
+**Insights:**
+U.S. tech companies, including Meta and Apple, have reportedly declined to launch some AI products in the EU as a result of the AI Act and related regulations, including the Digital Markets Act and data protection rules, citing "the unpredictable nature of the European regulatory environment" and "regulatory uncertainties."110 Broadly, though, most analysis seems to agree that the ultimate impact of the regulation will depend on the details of its implementation, many of which are to be determin
+
+### Step 7: Evaluate risks and challenges
+
+**Query Used:** Evaluate risks and challenges impact of AI in this context
+
+**Insights:**
+Other challenges include data contamination, which occurs when AI models are exposed 8 ARIA Design Document to the data used in testing before the actual test , and task contamination, which occurs when models are exposed to examples that are similar to the benchmark task prior to test-ing . Data and task contamination can lead to erroneously high performance estimates for computational benchmark results and the potential compromise of publicly available benchmarks when many AI systems share the
+
+## 📈 Conclusion
+
+Based on the research, the sector shows promising growth, driven by innovation and market demand, but also faces risks from regulation and competition.
