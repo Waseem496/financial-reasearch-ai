@@ -16,3 +16,16 @@ data/annual_reports/
 # OS files
 .DS_Store
 Thumbs.db
+
+# Logs
+streamlit
+requests
+python-dotenv
+yfinance
+langchain
+langchain-community
+langchain-openai
+chromadb
+pypdf
+tiktoken
+matplotlib
