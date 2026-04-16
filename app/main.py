@@ -191,6 +191,7 @@ with st.sidebar:
                 st.session_state[f"rename_{chat_id}"] = False
                 st.rerun()
 
+        
         st.markdown("---")
 # -------------------------
 # DISPLAY EXISTING MESSAGES
