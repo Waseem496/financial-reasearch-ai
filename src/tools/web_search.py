@@ -1,13 +1,15 @@
 import os
 import requests
 from dotenv import load_dotenv
+import streamlit as st
 
 load_dotenv()
 
 
 class WebSearchTool:
     def __init__(self):
-        self.api_key = os.getenv("TAVILY_API_KEY")
+
+        self.api_key = os.getenv("TAVILY_API_KEY") or st.secrets.get("TAVILY_API_KEY")
         self.url = "https://api.tavily.com/search"
 
     def search(self, query: str) -> str:
