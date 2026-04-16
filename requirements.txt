@@ -23,6 +23,7 @@ sentence-transformers
 # 🔹 PDF Processing (RAG ingestion)
 pypdf
 pdfplumber
+matplotlib # for visualizing PDF data if needed
 
 # 🔹 Database
 sqlalchemy
