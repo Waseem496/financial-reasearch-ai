@@ -22,6 +22,9 @@ class WebSearchTool:
 
         try:
             response = requests.post(self.url, json=payload)
+            if response.status_code != 200:
+                return f"API Error: {response.status_code}"
+
             data = response.json()
 
             results = []
