@@ -361,6 +361,7 @@ if st.session_state.current_plan and st.session_state.plan_approved:
             st.markdown(f"### 📊 Stock Analysis: {ticker}")
 
             chart = plot_stock_chart(ticker)
+            st.pyplot(chart)
             if chart:
                 st.pyplot(chart)
             else:

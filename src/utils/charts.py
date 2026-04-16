@@ -3,15 +3,18 @@ import yfinance as yf
 
 
 def get_stock_data(ticker: str):
-    stock = yf.Ticker(ticker)
-    df = stock.history(period="5y")
-    return df
+    try:
+        stock = yf.Ticker(ticker)
+        df = stock.history(period="5y")
+        return df
+    except Exception:
+        return None
 
 
 def plot_stock_chart(ticker: str):
     df = get_stock_data(ticker)
 
-    if df.empty:
+    if df is None or df.empty:
         return None
 
     plt.figure()
