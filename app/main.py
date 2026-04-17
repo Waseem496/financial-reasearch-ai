@@ -2,381 +2,222 @@ import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import streamlit as st
-
 import uuid
 from datetime import datetime
 
+# 🔹 Imports
 from src.core.router import QueryRouter
 from src.research.planner import ResearchPlanner
 from src.research.executor import ResearchExecutor
 from src.research.synthesizer import ReportSynthesizer
 from src.utils.charts import plot_stock_chart
 
+# 🔹 Initialize components
 router = QueryRouter()
 planner = ResearchPlanner()
 executor = ResearchExecutor()
 synthesizer = ReportSynthesizer()
 
-st.set_page_config(layout="wide", page_title="AI Research Agent")
+# 🔹 Session state init
+if "chats" not in st.session_state:
+    st.session_state.chats = {}
 
-# -------------------------
-# CSS
-# -------------------------
+if "current_chat" not in st.session_state:
+    st.session_state.current_chat = None
+
+if "search_query" not in st.session_state:
+    st.session_state.search_query = ""
+
+if "active_menu" not in st.session_state:
+    st.session_state.active_menu = None
+
+# 🔹 Page config
+st.set_page_config(page_title="Financial AI", layout="wide")
+
+# 🔹 CSS
 st.markdown("""
 <style>
-/* Sidebar styling */
 [data-testid="stSidebar"] {
-    background-color: #f8fafc;
+    background-color: #f5f7fa;
 }
-
-/* Chat item row */
-.chat-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 4px;
-    border-radius: 8px;
+.chat-item {
+    background: #e9eef3;
+    padding: 8px;
+    border-radius: 10px;
+    margin-bottom: 6px;
 }
-
-/* Chat title */
-.chat-title {
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 140px;
+.chat-active {
+    background: #dbeafe;
 }
-
-/* Timestamp */
 .chat-time {
     font-size: 10px;
     color: gray;
 }
-
-/* Buttons inline */
-.chat-actions {
-    display: flex;
-    gap: 4px;
-}
-
-/* Reduce button size */
-button[kind="secondary"] {
-    padding: 2px 6px !important;
-    font-size: 12px !important;
-}
+h1 { font-size: 24px !important; font-weight: bold; }
+h2 { font-size: 22px !important; font-weight: bold; }
+p { font-size: 20px !important; }
 </style>
 """, unsafe_allow_html=True)
-# -------------------------
-# SMALL TALK
-# -------------------------
-def handle_small_talk(query: str):
-    q = query.lower().strip()
-    if any(w in q for w in ["hi", "hello", "hey"]):
-        return "👋 Hi! How can I assist you with financial research today?"
-    if any(w in q for w in ["thanks", "thank you"]):
-        return "😊 You're welcome! Let me know if you need any financial insights."
-    if any(w in q for w in ["bye", "goodbye"]):
-        return "👋 Goodbye! Have a great day."
-    return None
 
-# -------------------------
-# ENTITY DETECTION
-# -------------------------
-def extract_company_or_sector(query: str):
-    if not query:
-        return None
-    q = query.lower()
-    mapping = {
-        "infosys": "INFY.NS",
-        "tcs": "TCS.NS",
-        "wipro": "WIPRO.NS",
-        "reliance": "RELIANCE.NS",
-        "hdfc": "HDFCBANK.NS",
-        "sun pharma": "SUNPHARMA.NS",
-        "dr reddy": "DRREDDY.NS",
-        "cipla": "CIPLA.NS",
-    }
-    for name, ticker in mapping.items():
-        if name in q:
-            return ticker
-    if "pharma" in q:
-        return "SUNPHARMA.NS"
-    if "it" in q or "software" in q:
-        return "INFY.NS"
-    return None
-
-# -------------------------
-# SESSION INIT
-# -------------------------
-for key, default in [
-    ("chats", {}),
-    ("current_chat", None),
-    ("search_query", ""),
-    ("current_plan", None),
-    ("agents", []),
-    ("plan_approved", False),
-]:
-    if key not in st.session_state:
-        st.session_state[key] = default
-
-# -------------------------
-# HEADER
-# -------------------------
-st.markdown("""
-<h2 style='text-align:center;'>🤖 Financial Deep Research AI</h2>
-<p style='text-align:center;color:gray;'>AI-powered financial analysis</p>
-""", unsafe_allow_html=True)
-
-# -------------------------
-# SIDEBAR
-# -------------------------
+# =======================
+# 🔹 SIDEBAR
+# =======================
 with st.sidebar:
-    st.markdown("## 💬 Chats")
-    search = st.text_input("🔍 Search chats", value=st.session_state.search_query)
+
+    st.markdown("### Chats")
+
+    search = st.text_input("Search chats...", value=st.session_state.search_query)
     st.session_state.search_query = search
 
-    if st.button("➕ New Chat", use_container_width=True):
+    if st.button("New Chat", use_container_width=True):
         st.session_state.current_chat = None
         st.rerun()
 
     st.markdown("---")
 
-    for chat_id, chat in list(st.session_state.chats.items()):
+    for chat_id, chat in st.session_state.chats.items():
 
-        if not chat["messages"]:
+        if not chat["messages"] and chat.get("status") != "running":
             continue
 
         if search and search.lower() not in chat["title"].lower():
             continue
 
         is_active = chat_id == st.session_state.current_chat
+        bg_class = "chat-item chat-active" if is_active else "chat-item"
 
-        col1, col2 = st.columns([0.75, 0.25])
+        status = chat.get("status", "done")
+        status_text = "⏳ Researching..." if status == "running" else chat["timestamp"]
 
-    # 🔹 Chat Title
+        col1, col2 = st.columns([0.85, 0.15])
+
+        # 🔹 Chat click
         with col1:
-            if st.button(
-                chat["title"][:30],
-                key=f"chat_{chat_id}",
-                use_container_width=True,
-                type="primary" if is_active else "secondary"
-            ):
+            if st.button(chat["title"][:30], key=f"chat_btn_{chat_id}", use_container_width=True):
                 st.session_state.current_chat = chat_id
+                st.session_state.active_menu = None
                 st.rerun()
 
-                st.markdown(f"<div class='chat-time'>{chat['timestamp']}</div>",
-            unsafe_allow_html=True
-        )
+            st.markdown(
+                f"<div class='{bg_class}'><div class='chat-time'>{status_text}</div></div>",
+                unsafe_allow_html=True
+            )
 
-    # 🔹 Actions (Edit + Delete)
+        # 🔹 Three dots
         with col2:
-            action_col1, action_col2 = st.columns(2)
+            if st.button("⋯", key=f"menu_btn_{chat_id}"):
+                if st.session_state.active_menu == chat_id:
+                    st.session_state.active_menu = None
+                else:
+                    st.session_state.active_menu = chat_id
 
-            with action_col1:
-                if st.button("✏️", key=f"rename_{chat_id}"):
+        # 🔽 Dropdown actions
+        if st.session_state.active_menu == chat_id:
+
+            st.caption("Actions")
+
+            a1, a2 = st.columns(2)
+
+            with a1:
+                if st.button("Edit", key=f"edit_btn_{chat_id}"):
                     st.session_state[f"rename_{chat_id}"] = True
+                    st.session_state.active_menu = None
 
-            with action_col2:
-                if st.button("🗑️", key=f"del_{chat_id}"):
+            with a2:
+                if st.button("Delete", key=f"delete_btn_{chat_id}"):
                     del st.session_state.chats[chat_id]
+
                     if st.session_state.current_chat == chat_id:
                         st.session_state.current_chat = None
+
+                    st.session_state.active_menu = None
                     st.rerun()
 
-    # 🔹 Rename input
+        # 🔹 Rename
         if st.session_state.get(f"rename_{chat_id}", False):
-            new_name = st.text_input("Rename", key=f"input_{chat_id}")
+
+            new_name = st.text_input("Rename chat", key=f"input_{chat_id}")
+
             if new_name:
                 st.session_state.chats[chat_id]["title"] = new_name
                 st.session_state[f"rename_{chat_id}"] = False
                 st.rerun()
 
-        
-        st.markdown("---")
-# -------------------------
-# DISPLAY EXISTING MESSAGES
-# -------------------------
-if st.session_state.current_chat:
-    for msg in st.session_state.chats[st.session_state.current_chat]["messages"]:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+# =======================
+# 🔹 MAIN UI
+# =======================
 
-# -------------------------
-# CHAT INPUT
-# -------------------------
+st.title("Financial Research AI")
+
 query = st.chat_input("Ask a financial question...")
 
+# 🔹 Create chat instantly
 if query:
-    # Small talk shortcut
-    small_talk_response = handle_small_talk(query)
-    if small_talk_response:
-        if st.session_state.current_chat is None:
-            chat_id = str(uuid.uuid4())
-            st.session_state.current_chat = chat_id
-            st.session_state.chats[chat_id] = {
-                "title": query[:40],
-                "messages": [],
-                "timestamp": datetime.now().strftime("%d %b %H:%M"),
-            }
-        chat_data = st.session_state.chats[st.session_state.current_chat]
-        chat_data["messages"].append({"role": "user", "content": query})
-        with st.chat_message("assistant"):
-            st.markdown(small_talk_response)
-        chat_data["messages"].append({"role": "assistant", "content": small_talk_response})
-        st.stop()
+    chat_id = str(uuid.uuid4())
 
-    # Minimum length guard
-    if len(query.split()) < 3:
-        st.info("💡 Try something like: 'Analyze Infosys financial performance 2024'")
-        st.stop()
+    st.session_state.chats[chat_id] = {
+        "title": query,
+        "messages": [],
+        "timestamp": datetime.now().strftime("%d %b %H:%M"),
+        "status": "running"   # 🔥 important
+    }
 
-    # Create new chat if needed
-    if st.session_state.current_chat is None:
-        chat_id = str(uuid.uuid4())
-        st.session_state.current_chat = chat_id
-        st.session_state.chats[chat_id] = {
-            "title": query[:40],
-            "messages": [],
-            "timestamp": datetime.now().strftime("%d %b %H:%M"),
-        }
+    st.session_state.current_chat = chat_id
+    st.rerun()
 
-    chat_data = st.session_state.chats[st.session_state.current_chat]
-    chat_data["messages"].append({"role": "user", "content": query})
+# 🔹 Safety checks
+if st.session_state.current_chat is None:
+    st.info("Start a new chat to begin")
+    st.stop()
 
-    # Route and plan — store in session state
-    routing = router.route(query)
-    agents = routing["agents"]
-    plan = planner.create_plan(query, routing, agents[0])
+if st.session_state.current_chat not in st.session_state.chats:
+    st.session_state.current_chat = None
+    st.warning("Chat not found")
+    st.stop()
 
-    st.session_state.current_plan = plan
-    st.session_state.agents = agents
-    st.session_state.plan_approved = False
+chat_data = st.session_state.chats[st.session_state.current_chat]
 
-# -------------------------
-# PLAN APPROVAL
-# -------------------------
-if st.session_state.current_plan and not st.session_state.plan_approved:
-    with st.chat_message("assistant"):
-        st.markdown("## 🧠 Research Plan")
-        for i, step in enumerate(st.session_state.current_plan["steps"], 1):
-            st.markdown(f"**{i}.** {step}")
-        st.markdown("---")
-        st.markdown("👉 Approve to start deep research")
+# =======================
+# 🔹 RUN PIPELINE
+# =======================
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("✅ Approve & Run"):
-                st.session_state.plan_approved = True
-                st.rerun()
-        with col2:
-            if st.button("✏️ Modify Query"):
-                st.session_state.current_plan = None
-                st.session_state.plan_approved = False
-                st.info("Modify your query and try again")
+if not chat_data["messages"]:
 
-# -------------------------
-# EXECUTION — runs exactly once
-# -------------------------
-# -------------------------
-# EXECUTION — CLEAN UI
-# -------------------------
-if st.session_state.current_plan and st.session_state.plan_approved:
+    user_query = chat_data["title"]
 
-    plan = st.session_state.current_plan
-    agents = st.session_state.agents
+    with st.spinner("Running deep research..."):
 
-    if not agents:
-        st.error("⚠️ No agent found. Please try again.")
-        st.session_state.current_plan = None
-        st.session_state.plan_approved = False
-        st.stop()
-
-    chat_data = st.session_state.chats[st.session_state.current_chat]
-
-    last_user_query = next(
-        (m["content"] for m in reversed(chat_data["messages"]) if m["role"] == "user"),
-        None,
-    )
-
-    # 🔥 AI message (ONLY status)
-    with st.chat_message("assistant"):
-        st.markdown("🚀 Running deep research... please wait")
-
-    progress = st.progress(0)
-    status = st.empty()
-
-    try:
+        route = router.route(user_query)
+        plan = planner.create_plan(user_query, route)
         result = executor.execute(plan)
-    except Exception as e:
-        st.error("❌ Research failed")
-        st.code(str(e))
-        st.session_state.current_plan = None
-        st.session_state.plan_approved = False
-        st.session_state.agents = []
-        st.stop()
+        report = synthesizer.generate_report(result)
 
-    steps = result.get("steps", [])
-    total_steps = max(len(steps), 1)
+        chat_data["messages"].append({
+            "query": user_query,
+            "report": report
+        })
 
-    # -------------------------
-    # 🔍 Research Steps (SEPARATE SECTION)
-    # -------------------------
-    st.markdown("## 🔍 Research Steps")
+        chat_data["status"] = "done"
 
-    for i, step in enumerate(steps):
-        progress.progress((i + 1) / total_steps)
-        status.markdown(f"🔄 Step {i + 1}: {step.get('query')}")
+        st.rerun()
 
-        with st.expander(f"Step {i + 1} Details"):
-            st.write("**Query:**", step.get("query"))
+# =======================
+# 🔹 DISPLAY
+# =======================
 
-            insights = step.get("insights", [])
-            if isinstance(insights, str):
-                insights = [insights]
+for msg in chat_data["messages"]:
 
-            for ins in insights:
-                st.markdown(f"- {ins}")
+    st.markdown(msg["report"], unsafe_allow_html=True)
 
-    status.markdown("✅ Research completed")
+    # 🔹 Example chart
+    if "infosys" in msg["query"].lower():
+        chart = plot_stock_chart("INFY.NS")
 
-    # -------------------------
-    # 📄 FINAL OUTPUT (TABS OUTSIDE CHAT)
-    # -------------------------
-    report = synthesizer.generate_report(result)
-
-    st.markdown("## 📊 Final Output")
-
-    tab1, tab2 = st.tabs(["📄 Report", "📊 Charts"])
-
-    with tab1:
-        if report:
-            st.markdown(report)
-        else:
-            st.warning("⚠️ Report not generated")
-
-    with tab2:
-        ticker = extract_company_or_sector(last_user_query)
-
-        if ticker:
-            st.markdown(f"### 📊 Stock Analysis: {ticker}")
-
-            chart = plot_stock_chart(ticker)
+        if chart:
             st.pyplot(chart)
-            if chart:
-                st.pyplot(chart)
-            else:
-                st.warning("No data found for this ticker.")
         else:
-            st.info("Try asking about companies like Infosys, Sun Pharma, TCS, etc.")
+            st.warning("Stock data not available")
 
-    # -------------------------
-    # SAVE RESPONSE
-    # -------------------------
-    chat_data["messages"].append({
-        "role": "assistant",
-        "content": report
-    })
-
-    st.session_state.current_plan = None
-    st.session_state.plan_approved = False
-    st.session_state.agents = []
+# 🔹 Footer
+st.markdown("---")
+st.caption("⚠️ This is for educational purposes only. Not financial advice.")

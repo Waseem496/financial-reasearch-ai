@@ -1,66 +1,73 @@
 from typing import Dict, List
-from unittest import result
 from src.tools.web_search import WebSearchTool
 
 
 class ResearchExecutor:
     def __init__(self):
         self.results = []
-        self.web_search = WebSearchTool()  
-
+        self.web_search = WebSearchTool()
 
     def execute(self, plan: Dict, max_steps: int = 8) -> Dict:
         steps = plan.get("steps", [])
 
         print("\n🚀 Starting Research Execution...\n")
 
-    # 🔥 RESET results every run
+        # 🔥 Reset results every run
         self.results = []
 
         for i, step in enumerate(steps[:max_steps], 1):
 
             print(f"🔍 Step {i}: {step}")
 
-        # 🔥 Create better query
+            # 🔥 Refined query
             refined_query = f"{plan.get('query')} {step}"
 
-        # 🔥 Call web search
+            # 🔥 Run step
             result = self.run_step(refined_query)
 
             self.results.append({
-            "step": step,
-            "query": refined_query,
-            "result": result
-        })
+                "step": step,
+                "query": refined_query,
+                "result": result
+            })
 
             print(f"✅ Result: {result}\n")
 
         return {
-        "query": plan.get("query"),
-        "results": self.results
-    }
+            "query": plan.get("query"),
+            "results": self.results
+        }
 
-    def run_step(self, query: str) -> list:
-        raw_data = self.web_search.search(query)
+    def run_step(self, query: str) -> List[Dict]:
+        results = self.web_search.search(query)
 
-        if not raw_data:
-            return ["No data found"]
-
-    # 🔥 Clean + extract insights
-        lines = raw_data.split("\n")
+        if not results:
+            return [{"text": "No data found", "url": ""}]
 
         insights = []
-        for line in lines:
-            clean = line.strip()
 
-        # remove junk + short lines
-            if len(clean) > 50:
-                insights.append(clean)
+        for item in results:
 
-    # limit output
+            # ✅ Case 1: Proper dict from API
+            if isinstance(item, dict):
+                content = item.get("content", "").strip()
+                url = item.get("url", "")
+
+            # ✅ Case 2: fallback (string)
+            else:
+                content = str(item).strip()
+                url = ""
+
+            if len(content) > 50:
+                insights.append({
+                    "text": content,
+                    "url": url
+                })
+
         return insights[:5]
-    
 
+
+# 🔹 Standalone test
 if __name__ == "__main__":
     from src.core.router import QueryRouter
     from src.research.planner import ResearchPlanner
@@ -78,4 +85,8 @@ if __name__ == "__main__":
 
     print("\n📊 FINAL RESULTS:")
     for item in execution_result["results"]:
-        print(f"- {item['step']}: {item['result']}")
+        print(f"\n🔹 {item['step']}")
+        for res in item["result"]:
+            print(f"- {res['text']}")
+            if res["url"]:
+                print(f"  Source: {res['url']}")
